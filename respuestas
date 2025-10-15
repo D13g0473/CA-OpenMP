@@ -1,0 +1,65 @@
+EJERCICIO 2: Repartición de tareas
+
+¿Qué diferencia hay en la ejecución de estos dos programas?
+
+En el primer programa, cada thread ejecuta el bucle completo de 10 iteraciones, 
+imprimiendo "Hola mundo" seguido de su ID de thread 10 veces. Como hay 5 threads, se imprimirán 50 líneas en total.
+
+En el segundo programa, el bucle está paralelizado con #pragma omp for, 
+lo que significa que las iteraciones del bucle se distribuyen entre los threads. 
+Cada thread ejecutará aproximadamente 2 iteraciones (10/5=2), 
+imprimiendo "Hola mundo" seguido de su ID de thread. 
+El resultado será similar en términos de contenido, 
+pero el orden de impresión puede variar debido a la distribución de trabajo.
+
+¿Qué sucedería si la variable n no fuera privada?
+
+Si n no fuera privada, todos los threads compartirían la misma variable n, 
+lo que podría causar condiciones de carrera y resultados impredecibles. 
+Los threads podrían interferir entre sí al modificar n simultáneamente.
+
+EJERCICIO 3: Dependencia de datos.
+
+Suponga los siguientes fragmentos de programa e indique que lazos son susceptibles de ser paralelizados y cuáles no.
+
+1. DO i=1,N
+   a[i]= a[i+1] + x
+   END DO
+
+   No es paralelizable. Hay una dependencia de flujo (read-after-write) entre iteraciones consecutivas: a[i] depende de a[i+1] de la iteración anterior.
+
+2. DO i=1,N
+   a[i]= a[i] + b[i]
+   END DO
+
+   Es paralelizable. Cada iteración es independiente; no hay dependencias entre iteraciones.
+
+3. ix = base
+   DO i=1,N
+   a ( ix ) = a ( ix ) - b ( i )
+   ix = ix + stride
+   END DO
+
+   Es paralelizable. Aunque ix se actualiza en cada iteración, cada acceso a a[ix] es único debido al stride, y no hay dependencias entre iteraciones.
+
+4. DO i=1, n
+   b ( i ) = ( a ( i ) - a (i-1) )*0.5
+   END DO
+
+   No es paralelizable. Hay una dependencia de flujo: b[i] depende de a[i] y a[i-1], donde a[i-1] es escrito en la iteración anterior.
+
+EJERCICIO 5: Planificación de bucles
+
+Ejecute los siguientes códigos. Describa cual es la principal diferencia entre ellos.
+
+El primer programa usa schedule(static,4), que divide las iteraciones en bloques de tamaño 4 y 
+las asigna estáticamente a los threads.
+ Por ejemplo, con 4 threads y N=40, cada thread obtiene 10 iteraciones (40/4=10 bloques de 4).
+
+El segundo programa usa schedule(dynamic,4), 
+que asigna bloques de 4 iteraciones dinámicamente a medida que los threads terminan su trabajo. 
+Esto puede llevar a una distribución más equilibrada si las iteraciones tienen tiempos variables, 
+pero tiene más overhead.
+
+La principal diferencia es que static asigna trabajo de manera predecible y uniforme al inicio, 
+mientras que dynamic asigna trabajo sobre la marcha, lo que puede ser más eficiente para cargas de trabajo irregulares.
